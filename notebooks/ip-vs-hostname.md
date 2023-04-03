@@ -30,14 +30,14 @@ But why would you want to use a raw IP?
 One example would be when you want to generate `hosts.xml` and `services.xml` dynamically during deployment and your service discovery system only gives back IPs of Vespa nodes (e.g. [Consul](https://www.consul.io)).
 
 But does it work to use IPs instead of hostnames?
-Roll up your sleeves, make sure that Docker is set up, vespa CLI is installed and let's find out.
+Roll up your sleeves, make sure that Docker is set up, vespa CLI is installed, and let's find out.
 
-Demo app can be found [here](https://github.com/dainiusjocas/vespa-networking-sandbox).
+The demo application package can be found [here](https://github.com/dainiusjocas/vespa-networking-sandbox).
 
 
 ## Experiment
 
-As a base let's take the sample app from the [multinode HA](https://github.com/vespa-engine/sample-apps/tree/master/examples/operations/multinode-HA) project
+As a base, let's take the sample app from the [multinode HA](https://github.com/vespa-engine/sample-apps/tree/master/examples/operations/multinode-HA) project
 and modify it so that the Vespa deployment would have
 - 3 configservers (3 because each services node must include all the configserver hostnames),
 - 1 services nodes.
@@ -172,6 +172,32 @@ Start the services container:
 
 Deploy the sample [Vespa application package](https://github.com/dainiusjocas/vespa-networking-sandbox):
 
+The `hosts.xml` file has the following [content](https://github.com/dainiusjocas/vespa-networking-sandbox/blob/main/vap/hosts.xml):
+
+```clojure
+^{:nextjournal.clerk/width :full}
+(clerk/html
+  [:pre
+   "<?xml version=\"1.0\" encoding=\"utf-8\" ?>
+<hosts>
+    <host name=\"172.30.0.2\">
+        <alias>configserver-0</alias>
+    </host>
+    <host name=\"172.30.0.3\">
+        <alias>configserver-1</alias>
+    </host>
+    <host name=\"172.30.0.4\">
+        <alias>configserver-2</alias>
+    </host>
+    <host name=\"172.30.0.5\">
+        <alias>services-1</alias>
+    </host>
+</hosts>
+"])
+```
+
+Deploy:
+
 ```clojure
 ^{:nextjournal.clerk/width :full}
 (clerk/html
@@ -187,7 +213,6 @@ WARNING Host named '172.30.0.4' may not receive any config since it differs from
 
 Waiting up to 5m0s for query service to become available ...
 "])
-
 ```
 
 There the warnings but it is fine.
@@ -238,7 +263,8 @@ It returns the document that we've just fed. Victory!
 
 ## Summary
 
-We've set up Vespa system so that it has 3 configserver and 1 services node all running in one Docker network.
+We've set up Vespa system so that it has 3 configserver and 1 services node and they all are running in the `vespanet` Docker network.
 The configuration has all IPs set explicitly.
 Also, we've deployed an application package that instead of hostnames contains raw IPs and tested it. 
+
 It is possible to use IPs instead of hostname for Vespa applications.
